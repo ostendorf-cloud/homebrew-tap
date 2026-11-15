@@ -1,0 +1,8 @@
+# Every tool this repository needs, pinned. CI installs from this same file through
+# mise-action, so local and CI run identical versions. Nothing is installed any other way.
+[tools]
+task = "3"
+markdownlint-cli2 = "0.20"
+yamllint = "1"
+gitleaks = "8"
+actionlint = "1"

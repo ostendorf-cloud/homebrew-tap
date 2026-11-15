@@ -1,0 +1,36 @@
+version: "3"
+
+tasks:
+  setup:
+    desc: Install the pinned toolchain
+    cmds:
+      - mise trust
+      - mise install
+
+  check:
+    desc: Every check, one after another
+    cmds:
+      - task: lint:markdown
+      - task: lint:yaml
+      - task: lint:actions
+      - task: lint:secrets
+
+  lint:markdown:
+    desc: Markdown lint
+    cmds:
+      - markdownlint-cli2 "**/*.md"
+
+  lint:yaml:
+    desc: YAML lint
+    cmds:
+      - yamllint .
+
+  lint:actions:
+    desc: GitHub Actions workflow lint
+    cmds:
+      - actionlint
+
+  lint:secrets:
+    desc: Secret scan over the git history
+    cmds:
+      - gitleaks git --no-banner --redact
