@@ -1,0 +1,68 @@
+name: formula
+
+# Checks the formulae a push or pull request changed. A tool's release pipeline
+# pushes Formula/<tool>.rb straight to main with no pull request, so the push
+# to main is the check that matters. A pull request gets the same checks.
+#
+# brew install and brew test EXECUTE the formula, which is Ruby, on the
+# runner. That is acceptable because formulae arrive from this organisation's
+# own release pipelines, and a pull request from a fork runs with a read only
+# token and no secrets. Never switch this workflow to pull_request_target.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A superseded push to a pull request cancels the run it replaced. A push to
+# main gets one group per commit and is never cancelled: even with
+# cancel-in-progress off, GitHub cancels a run that is still pending in the
+# same group, which would leave the formula of a middle push unchecked.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # The commit before the change: the pull request's base sha on a pull
+  # request, the push's "before" on a push. A pull request event on a later
+  # push also carries "before", which is the previous head of the pull request
+  # and would hide an earlier commit, so the event name decides. The script
+  # treats an empty, zero or unknown value as "check all".
+  CHECK_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+  CHECK_HEAD: ${{ github.sha }}
+
+jobs:
+  lint-formula:
+    name: lint-formula (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      # Full history, so the script can find the merge base of a force push.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785  # v5.2.8
+      - run: task lint:formula
+
+  test-formula:
+    name: test-formula (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785  # v5.2.8
+      - run: task test:formula
