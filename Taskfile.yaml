@@ -14,6 +14,8 @@ tasks:
       - task: lint:yaml
       - task: lint:actions
       - task: lint:secrets
+      - task: lint:shell
+      - task: test:shell
 
   lint:markdown:
     desc: Markdown lint
@@ -34,3 +36,28 @@ tasks:
     desc: Secret scan over the git history
     cmds:
       - gitleaks git --no-banner --redact
+
+  lint:shell:
+    desc: Shell script lint
+    cmds:
+      - shellcheck scripts/*.sh
+
+  test:shell:
+    desc: Self test of the formula check script, runs without Homebrew
+    cmds:
+      - scripts/check-formula_test.sh
+
+  # CHECK_BASE is the commit before the change and CHECK_HEAD the commit to
+  # check. Unset, every formula is checked. CI only: not part of "check",
+  # because it needs Homebrew and taps this checkout as ostendorf-cloud/tap
+  # for the duration of the run.
+  lint:formula:
+    desc: brew audit --strict and brew style on the changed formulae
+    cmds:
+      - scripts/check-formula.sh lint "${CHECK_BASE:-}" "${CHECK_HEAD:-HEAD}"
+
+  # Executes the formula (Ruby) on this machine, see AGENTS.md.
+  test:formula:
+    desc: brew install --build-from-source and brew test on the changed formulae
+    cmds:
+      - scripts/check-formula.sh test "${CHECK_BASE:-}" "${CHECK_HEAD:-HEAD}"

@@ -41,8 +41,11 @@ task --list
 task check
 ```
 
-The checks here cover the repository's own files rather than the formulae: a formula is generated,
-and the tool that generates it tests it before publishing.
+The generating tool checks URLs, hashes and structure before it publishes a formula. This
+repository then runs `brew audit --strict`, `brew style`, an install from source and `brew test`
+on every changed formula, on macOS and Linux. `task lint:formula` and `task test:formula` run
+them, but only CI calls them: they are not part of `task check`, because they tap this checkout
+and execute the formula. Without `CHECK_BASE` they check every formula.
 
 ## License
 
