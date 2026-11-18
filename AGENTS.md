@@ -32,6 +32,9 @@ task --list          # one target per check
 - A formula is generated. Do not edit one by hand, and do not accept a pull request that does: the
   next release would overwrite it and the fix would be lost. A formula problem is fixed in the
   tool's own `.goreleaser.yaml`.
+- Renovate runs here through the organisation's shared preset and workflow, hourly, and keeps
+  the pinned actions and the `mise.toml` tools current. `renovate.json` switches its
+  `homebrew` manager off, so no Renovate pull request ever edits a formula.
 - A tool publishing here needs write access to this repository, which is why the token or app
   used for it is scoped to this repository alone rather than to the organisation.
 - This repository must stay public. Homebrew cannot read a private tap without credentials, so a

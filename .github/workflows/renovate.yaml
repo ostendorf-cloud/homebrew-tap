@@ -1,0 +1,29 @@
+name: renovate
+
+# Thin, per-repository trigger for this repository's own Renovate run,
+# calling the organisation's shared "reusable-renovate.yaml" on its floating
+# "v0" tag. It runs hourly, at minute 57, because Renovate merges an update
+# only in a run that sees green checks. The minute is offset from the other
+# repositories' Renovate schedules so they do not all start at the same time.
+#
+# The "issues" and "pull_request" "edited" triggers let a human ticking a
+# rebase checkbox (on the Dependency Dashboard issue or on a Renovate pull
+# request) get a reaction within this run, instead of waiting for the next
+# "schedule" tick. The anti-loop guard that keeps Renovate's own edits from
+# retriggering this workflow lives in "reusable-renovate.yaml" itself.
+on:
+  schedule:
+    - cron: "57 * * * *"
+  workflow_dispatch:
+  issues:
+    types: [edited]
+  pull_request:
+    types: [edited]
+
+permissions:
+  contents: read
+
+jobs:
+  renovate:
+    uses: ostendorf-cloud/workflows/.github/workflows/reusable-renovate.yaml@v0
+    secrets: inherit
